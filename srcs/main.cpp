@@ -6,7 +6,7 @@
 /*   By: mcherel- <mcherel-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/27 13:14:15 by mcherel-          #+#    #+#             */
-/*   Updated: 2023/06/27 14:20:01 by mcherel-         ###   ########.fr       */
+/*   Updated: 2023/06/27 15:01:56 by mcherel-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ int main (int argc, char  const**argv){
         (void)valread;
         struct sockaddr_in address;
         int opt = 1;
-        // int addrlen = sizeof(address);
-        // char buffer[1024] = {0};
-        // char *hello = "Hello from server";
+        int addrlen = sizeof(address);
+        char buffer[1024] = {0};
+        std::string hello = "Hello from server";
         
         //Socket FD creation
         if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -49,6 +49,20 @@ int main (int argc, char  const**argv){
         address.sin_family = AF_INET;
         address.sin_addr.s_addr = INADDR_ANY;
         address.sin_port = htons(PORT);
+
+        if (bind(server_fd, (struct  sockaddr*)&address, sizeof(address)) < 0)
+            throw std::logic_error("bind failed");
+        
+        if (listen(server_fd, 3) < 0)
+            throw std::logic_error("listen");
+
+        if ((new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen)) < 0)
+            throw std::logic_error("accept");
+        
+        valread = read(new_socket, buffer, 1024);
+        std::cout << buffer << std::endl;
+        send(new_socket, hello.c_str(), hello.size(), 0);
+        std::cout << "Hello message sent" << std::endl;
 
         //https://www.geeksforgeeks.org/socket-programming-cc/
     }
