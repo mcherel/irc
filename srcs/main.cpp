@@ -6,7 +6,7 @@
 /*   By: mcherel- <mcherel-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/27 13:14:15 by mcherel-          #+#    #+#             */
-/*   Updated: 2023/06/27 13:42:51 by mcherel-         ###   ########.fr       */
+/*   Updated: 2023/06/27 14:20:01 by mcherel-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,45 @@
 #include <stdlib.h>
 #include <stdexcept>
 
-int main (int argc, char **argv){
+//SOCKET RELATED LIB
+#include <netinet/in.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#define PORT 8080
+
+int main (int argc, char  const**argv){
     try{
         (void)argv;
         //std::cout << argc << std::endl;
         if (argc != 3)
             throw std::logic_error("The program call : ./ircserv <port> <password>");
+        int server_fd, new_socket, valread;
+        (void)new_socket;
+        (void)valread;
+        struct sockaddr_in address;
+        int opt = 1;
+        // int addrlen = sizeof(address);
+        // char buffer[1024] = {0};
+        // char *hello = "Hello from server";
+        
+        //Socket FD creation
+        if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+            throw std::logic_error("socket failed");
+
+        //Attaching socket to the port 8080
+        if(setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR \
+            | SO_REUSEPORT, &opt, sizeof(opt))){
+                throw std::logic_error("setsockopt");
+            }
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(PORT);
+
+        //https://www.geeksforgeeks.org/socket-programming-cc/
     }
+
     catch( const std::exception & e ) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
