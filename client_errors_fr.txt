@@ -1,0 +1,31 @@
+Voici une liste de vérification des exceptions courantes à prendre en compte lors du dépannage des clients IRC lors du développement d'un chat avec un seul serveur :
+
+    SocketException :
+        Gérer les exceptions de socket, telles que les erreurs de connexion, les déconnexions inattendues ou les problèmes de réseau.
+
+    IOException :
+        Gérer les exceptions d'entrée/sortie lors de la lecture ou de l'écriture de données depuis/vers le serveur IRC.
+
+    IllegalArgumentException :
+        Vérifier les arguments passés aux différentes méthodes et éviter les valeurs incorrectes ou incohérentes.
+
+    IllegalStateException :
+        Vérifier l'état du client IRC et éviter les appels de méthode invalides ou inappropriés.
+
+    InterruptedException :
+        Gérer les exceptions liées aux opérations d'attente ou de mise en pause, telles que l'attente d'une réponse du serveur.
+
+    SecurityException :
+        Gérer les exceptions liées aux autorisations de sécurité, telles que les restrictions d'accès aux ressources système.
+
+    NullPointerException :
+        Vérifier et gérer les références null pour éviter les erreurs de pointeur nul lors de l'accès aux objets ou aux variables.
+
+    ParsingException :
+        Gérer les exceptions liées au parsing ou à l'interprétation incorrecte des données reçues du serveur IRC.
+
+    Custom Exceptions :
+        Identifiez les cas spécifiques dans votre application où des exceptions personnalisées peuvent être nécessaires et gérez-les en conséquence.
+
+    Logging and Error Reporting :
+        Implémentez un système de journalisation pour enregistrer les exceptions et les erreurs rencontrées afin de faciliter le dépannage et la résolution des problèmes.

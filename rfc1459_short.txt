@@ -1,0 +1,46 @@
+IRC (Internet Relay Chat):
+ - using the TCP/IP network protocol
+ - through the use of the client-server model
+ - single process (the server) forming a central point for clients (or other servers)
+Server(s):
+ - providing a point to which clients may connect
+ - forming an IRC network
+ - server acts as a central node
+Client(s):
+ - anything connecting to a server that is not another server
+ - distinguished from other clients by a unique nickname having a maximum length of nine (9) characters
+ - information to probvide to the server:
+    - the real name of the host that the client is running on
+    - the username of the client on that host
+    - the server to which the client is connected
+Server Operator(s) (?)
+ - should be able to disconnect and reconnect servers (SQUIT && CONNECT)
+ - to  remove  a user  from  the connected network by 'force' (KILL)
+Channel(s)
+ - is a named group of one or more clients which will all receive messages addressed to that channel
+ - is created implicitly when the first client joins it
+ - ceases to exist when the last client leaves it
+ - if it exists, any client can reference the channel using the name of the channel
+ - channel names :
+    - beginning with a '&' or '#' character (to define)
+    - length up to 200 characters
+    - restrictions :
+        - no spaces (' ')
+        - no control G (^G or ASCII 7)
+        - no comma (',' which is used as a list item separator by the protocol)
+ - JOIN to create or join a channel 
+    - if the channel doesn't exist :
+        - prior to joining, the channel is created
+        - the creating user becomes a channel operator
+    - if the channel already exists :
+        - see modes (i, t, k, o)
+        - if the channel is invite-only, (+i), then you may only join if invited
+    - user ca be a part of several channels (max 10)
+Channel Operator(s)
+ - also referred to as a "chop" or "chanop"
+ - considered to 'own' that channel
+ - commands only used :
+    - KICK    - Eject a client from the channel
+    - MODE    - Change the channel's mode (i, t, k, o)
+    - INVITE  - Invite a client to an invite-only channel (mode +i)
+    - TOPIC   - Change the channel topic in a mode +t channel
