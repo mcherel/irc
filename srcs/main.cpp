@@ -6,7 +6,7 @@
 /*   By: mcherel- <mcherel-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/27 13:14:15 by mcherel-          #+#    #+#             */
-/*   Updated: 2023/06/27 15:01:56 by mcherel-         ###   ########.fr       */
+/*   Updated: 2023/06/30 13:41:13 by mcherel-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <unistd.h>
 #define PORT 8080
 
+
 int main (int argc, char  const**argv){
     try{
         (void)argv;
@@ -29,8 +30,8 @@ int main (int argc, char  const**argv){
         if (argc != 3)
             throw std::logic_error("The program call : ./ircserv <port> <password>");
         int server_fd, new_socket, valread;
-        (void)new_socket;
-        (void)valread;
+        //(void)new_socket;
+        //(void)valread;
         struct sockaddr_in address;
         int opt = 1;
         int addrlen = sizeof(address);
@@ -46,8 +47,8 @@ int main (int argc, char  const**argv){
             | SO_REUSEPORT, &opt, sizeof(opt))){
                 throw std::logic_error("setsockopt");
             }
-        address.sin_family = AF_INET;
-        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_family = AF_INET;//IPv4
+        address.sin_addr.s_addr = INADDR_ANY;//Binds Socket to all available interfaces
         address.sin_port = htons(PORT);
 
         if (bind(server_fd, (struct  sockaddr*)&address, sizeof(address)) < 0)
