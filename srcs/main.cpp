@@ -10,110 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream> // Include the necessary header file for cout
-#include <cstring> // Include the necessary header file for strerror
-#include <cerrno> // Include the necessary header file for errno
-#include <stdlib.h>
-#include <stdexcept>
-//#include <stdio.h>
+#include "../includes/Server.hpp"
 
-//SOCKET RELATED LIB
-#include <netinet/in.h> // Include the necessary header file for sockaddr_in and sockaddr_in6
-#include <string>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <netdb.h> // Include the necessary header file for getaddrinfo, freeaddrinfo, gai_strerror
-#include <sys/types.h> // Include the necessary header file for socket, setsockopt, bind, listen
-#include <sys/socket.h> // Include the necessary header file for socket, setsockopt, bind, listen
-#include <unistd.h> // Include the necessary header file for close
-
-// Get sockaddr, IPv4 or IPv6:
-void* get_in_addr(struct sockaddr* sa)
-{
-    if (sa->sa_family == AF_INET) {
-        return &(reinterpret_cast<struct sockaddr_in*>(sa)->sin_addr);
-    }
-
-    return &(reinterpret_cast<struct sockaddr_in6*>(sa)->sin6_addr);
-}
-
-int get_listener_socket(const char* port)
-{
-    int listener; // Listening socket descriptor
-    int yes = 1; // For setsockopt() SO_REUSEADDR, below
-    int rv;
-
-    struct addrinfo hints, *ai, *p;
-
-    // Get us a socket and bind it
-    memset(&hints, 0, sizeof(hints)); // Clear the hints structure
-    hints.ai_family = AF_UNSPEC; // Allow IPv4 or IPv6
-    hints.ai_socktype = SOCK_STREAM; // TCP socket
-    hints.ai_flags = AI_PASSIVE; // For wildcard IP address
-    if ((rv = getaddrinfo(NULL, port, &hints, &ai)) != 0) {
-        std::cerr << "selectserver: " << gai_strerror(rv) << std::endl; // Print the error message
-        std::exit(1); // Exit the program with an error status
-    }
-
-    for (p = ai; p != NULL; p = p->ai_next) {
-        listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol); // Create the socket
-        if (listener < 0) {
-            continue;
-        }
-
-        // Lose the pesky "address already in use" error message
-        setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(int)); // Set the socket option
-
-        if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) { // Bind the socket
-            close(listener);
-            continue;
-        }
-
-        break;
-    }
-
-    freeaddrinfo(ai); // All done with this
-
-    // If we got here, it means we didn't get bound
-    if (p == NULL) {
-        return -1;
-    }
-
-    // Listen
-    if (listen(listener, 10) == -1) { // Start listening on the socket
-        return -1;
-    }
-
-    return listener; // Return the listening socket descriptor
-}
-
-
-void add_to_pfds(pollfd* pfds[], int newfd, int* fd_count, int* fd_size)
-{
-    // If we don't have room, add more space in the pfds array
-    if (*fd_count == *fd_size) {
-        *fd_size *= 2; // Double it
-
-        // Reallocate memory for the pfds array, using reinterpret_cast for the type cast
-        *pfds = reinterpret_cast<pollfd*>(realloc(*pfds, sizeof(**pfds) * (*fd_size)));
-    }
-
-    // Assign the new file descriptor and events to the pfds array
-    (*pfds)[*fd_count].fd = newfd;
-    (*pfds)[*fd_count].events = POLLIN; // Check ready-to-read
-
-    // Increment the fd_count
-    (*fd_count)++;
-}
-
-// Remove an index from the set
-void del_from_pfds(struct pollfd pfds[], int i, int *fd_count)
-{
-    // Copy the one from the end over this one
-    pfds[i] = pfds[*fd_count-1];
-
-    (*fd_count)--;
-}
 
 int main (int argc, char  const**argv){
     if (argc != 3)
@@ -172,6 +70,11 @@ int main (int argc, char  const**argv){
                     if (newfd == -1) {
                         std::cerr << "error accept" << std::endl;
                     } else {
+                        if (set_nonblocking(newfd) == -1) {
+                            std::cerr << "set_nonblocking: " << strerror(errno) << std::endl;
+                            close(newfd);
+                            continue;
+                        }
                         add_to_pfds(&pfds, newfd, &fd_count, &fd_size);
                         inet_ntop(remoteaddr.ss_family,
                                 get_in_addr(reinterpret_cast<struct sockaddr*>(&remoteaddr)),
@@ -216,8 +119,32 @@ int main (int argc, char  const**argv){
                     }
                 } // END handle data from client
             } // END got ready-to-read from poll()
+
+            // Check if someone closed the socket
+            if (pfds[i].revents & POLLRDHUP) {//POLLHUP: The file descriptor has been closed.
+                std::cout << "pollserver: socket " << pfds[i].fd << " closed the connection" << std::endl;
+                close(pfds[i].fd);
+                del_from_pfds(pfds, i, &fd_count);
+            }
         } // END looping through file descriptors
     } // END for(;;)--and you thought it would never end!
+    
+    {
+
+        int errorNumber = 0; // The error number you want to retrieve the message for
+        char errorBuf[256]; // Buffer to store the error message
+
+        // Retrieve the error message
+        int result = atoi(strerror_r(errorNumber, errorBuf, sizeof(errorBuf)));
+
+        if (result == 0) {
+            // Successful retrieval of error message
+            std::cout << "Error: " << errorBuf << std::endl;
+        } else {
+            // Error occurred while retrieving the error message
+            std::cerr << "Failed to retrieve error message" << std::endl;
+        }
+    }
     
     return EXIT_SUCCESS;
 }
