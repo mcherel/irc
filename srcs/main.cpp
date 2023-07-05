@@ -14,13 +14,22 @@
 
 
 int main (int argc, char  const**argv){
-    if (argc != 3)
-            throw std::logic_error("The program call : ./ircserv <port> <password>");
+    try{
+        if (argc != 3)
+                throw std::logic_error("The program call : ./ircserv <port> <password>");
 
-    Server	MY_SERVER( argv[1], argv[2] );
-	MY_SERVER.connect();
-    
-    {
+        Server	MY_SERVER( argv[1], argv[2] );
+        MY_SERVER.connect();
+    }
+    catch( const std::exception & e ) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    catch(...) {
+        std::cerr << "Final error message... debug" << std::endl;
+        return EXIT_FAILURE;
+    }
+    /* {
 
         int errorNumber = 0; // The error number you want to retrieve the message for
         char errorBuf[256]; // Buffer to store the error message
@@ -35,7 +44,7 @@ int main (int argc, char  const**argv){
             // Error occurred while retrieving the error message
             std::cerr << "Failed to retrieve error message" << std::endl;
         }
-    }
+    } */
     
     return EXIT_SUCCESS;
 }
