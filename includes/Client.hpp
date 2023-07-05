@@ -1,7 +1,7 @@
 #ifndef CLIENT_HPP
- #define CLIENT_HPP
+# define CLIENT_HPP
 
- #include <string>
+# include <string>
 
  class Client
  {
@@ -10,7 +10,7 @@
             std::string nickname,
             std::string username,
             std::string hotsname,
-            std::string mode 
+            std::string mode
         );
         ~Client();
     public:
@@ -25,10 +25,10 @@
         void set_mode(std::string mode);
         //void add_channel(std::string channel);
     private:
-        std::string nickname;
-        std::string username;
-        std::string hotsname;
-        std::string mode;
+        std::string _nickname;
+        std::string _username;
+        std::string _hotsname;
+        std::string _mode;
 
         //std::set<std::string> channels;
  };
