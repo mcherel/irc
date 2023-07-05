@@ -27,7 +27,10 @@ class Server{
         const std::string _port;
         const std::string _password;
         std::map<int, Client *> _clients;
+        //commands
+        //channels
         struct sockaddr_in _server;
+        int get_socket();
 
     public:
         Server(
@@ -53,7 +56,7 @@ class Server{
 //  Get sockaddr, IPv4 or IPv6:
 void*   get_in_addr(struct sockaddr* sa);
 //  Get listener socket
-int get_listener_socket(const char* port);
+int get_listener_socket(const std::string port);
 //  Add fd to pollfd structure used by poll()
 void    add_to_pfds(pollfd* pfds[], int newfd, int* fd_count, int* fd_size);
 //  Remove an index from the set

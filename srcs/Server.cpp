@@ -13,6 +13,141 @@
 
 #include "../includes/Server.hpp"
 
+Server::Server( 
+        const std::string & port, 
+        const std::string & password
+    ):
+        _port(port),
+        _password(password){
+    //commands initialisation part
+}
+
+Server::~Server(){
+    //clearing commands part
+}
+
+void Server::connect(){
+     int listener;     // Listening socket descriptor
+
+    int newfd;        // Newly accept()ed socket descriptor
+    struct sockaddr_storage remoteaddr; // Client address
+    socklen_t addrlen;
+
+    char buf[256];    // Buffer for client data
+
+    char remoteIP[INET6_ADDRSTRLEN];
+
+    // Start off with room for 5 connections
+    // (We'll realloc as necessary)
+    int fd_count = 0;
+    int fd_size = 5;
+    const std::string port = this->get_port();
+    struct pollfd *pfds = static_cast<pollfd*>(malloc(sizeof *pfds * fd_size));
+
+    // Set up and get a listening socket
+    listener = get_listener_socket(port);
+
+    if (listener == -1) {
+        std::cerr << "error getting listening socket" << std::endl;
+        std::exit(1);
+    }
+
+    // Add the listener to set
+    pfds[0].fd = listener;
+    pfds[0].events = POLLIN; // Report ready to read on incoming connection
+
+    fd_count = 1; // For the listener
+
+    // Main loop
+    for(;;) {
+        int poll_count = poll(pfds, fd_count, -1);
+
+        if (poll_count == -1) {
+            std::cerr << "error poll" << std::endl;
+            exit(1);
+        }
+
+        // Run through the existing connections looking for data to read
+        for(int i = 0; i < fd_count; i++) {
+
+            // Check if someone's ready to read
+            if (pfds[i].revents & POLLIN) { // We got one!!
+                if (pfds[i].fd == listener) {
+                    // If listener is ready to read, handle new connection
+
+                    addrlen = sizeof(remoteaddr);
+                    newfd = accept(listener, reinterpret_cast<struct sockaddr*>(&remoteaddr), reinterpret_cast<socklen_t*>(&addrlen));
+
+                    if (newfd == -1) {
+                        std::cerr << "error accept" << std::endl;
+                    } else {
+                        if (set_nonblocking(newfd) == -1) {
+                            std::cerr << "set_nonblocking: " << strerror(errno) << std::endl;
+                            close(newfd);
+                            continue;
+                        }
+                        add_to_pfds(&pfds, newfd, &fd_count, &fd_size);
+                        inet_ntop(remoteaddr.ss_family,
+                                get_in_addr(reinterpret_cast<struct sockaddr*>(&remoteaddr)),
+                                remoteIP, INET6_ADDRSTRLEN);
+
+                        std::cout << "pollserver: new connection from " <<
+                            remoteIP << " on socket " << newfd << std::endl;
+                    }
+                }else {
+                    // If not the listener, we're just a regular client
+                    int nbytes = recv(pfds[i].fd, buf, sizeof buf, 0);
+
+                    int sender_fd = pfds[i].fd;
+
+                    if (nbytes <= 0) {
+                        // Got error or connection closed by client
+                        if (nbytes == 0) {
+                            // Connection closed
+                            std::cout << "pollserver: socket " << sender_fd << " hung up" << std::endl;
+                        } else {
+                            std::cerr << ("recv") << std::endl;
+}
+
+                        close(pfds[i].fd); // Bye!
+
+                        del_from_pfds(pfds, i, &fd_count);
+
+                    } else {
+                        // We got some good data from a client
+
+                        for(int j = 0; j < fd_count; j++) {
+                            // Send to everyone!
+                            int dest_fd = pfds[j].fd;
+
+                           // Except the listener and ourselves
+                            if (dest_fd != listener && dest_fd != sender_fd) {
+                                if (send(dest_fd, buf, nbytes, 0) == -1) {
+                                    std::cerr << "send: " << strerror(errno) << std::endl;
+                                }
+                            }
+                        }
+                    }
+                } // END handle data from client
+            } // END got ready-to-read from poll()
+
+            // Check if someone closed the socket
+            if (pfds[i].revents & POLLRDHUP) {//POLLHUP: The file descriptor has been closed.
+                std::cout << "pollserver: socket " << pfds[i].fd << " closed the connection" << std::endl;
+                close(pfds[i].fd);
+                del_from_pfds(pfds, i, &fd_count);
+            }
+        } // END looping through file descriptors
+    } // END for(;;)--and you thought it would never end!
+}
+
+std::string Server::get_port() const {
+    return this->_port;
+}
+
+int Server::get_socket(){
+    return 1;//to fill
+}
 // Get sockaddr, IPv4 or IPv6:
 void* get_in_addr(struct sockaddr* sa)
 {
@@ -23,7 +158,9 @@ void* get_in_addr(struct sockaddr* sa)
     return &(reinterpret_cast<struct sockaddr_in6*>(sa)->sin6_addr);
 }
 
-int get_listener_socket(const char* port)
+
+
+int get_listener_socket(const std::string port)
 {
     int listener; // Listening socket descriptor
     int yes = 1; // For setsockopt() SO_REUSEADDR, below
@@ -41,7 +178,7 @@ int get_listener_socket(const char* port)
     NULL is passed as the host parameter, which indicates that 
     the local host address will be used. 
     PORT represents the port number or service name. */
-    if ((rv = getaddrinfo(NULL, port, &hints, &ai)) != 0) {
+    if ((rv = getaddrinfo(NULL, port.c_str(), &hints, &ai)) != 0) {
         std::cerr << "selectserver: " << gai_strerror(rv) << std::endl; // Print the error message
         std::exit(1); // Exit the program with an error status
     }
