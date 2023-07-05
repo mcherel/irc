@@ -1,14 +1,16 @@
 #ifndef CLIENT_HPP
  #define CLIENT_HPP
 
+ #include <string>
+
  class Client
  {
     public:
         Client(
-            std::string nickname;
-            std::string username;
-            std::string hotsname;
-            std::string mode; 
+            std::string nickname,
+            std::string username,
+            std::string hotsname,
+            std::string mode 
         );
         ~Client();
     public:

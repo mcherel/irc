@@ -14,7 +14,7 @@ NAME	=	ircserv
 
 CXX		=	c++
 
-src		=	main.cpp Server.cpp
+src		=	main.cpp Server.cpp Client.cpp
 
 OBJ		=	$(src:.cpp=.o)
 
