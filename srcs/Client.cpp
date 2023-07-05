@@ -6,10 +6,10 @@ Client::Client(
     std::string hotsname,
     std::string mode 
 ){
-    this->nickname = nickname;
-    this->username = username;
-    this->hotsname = hotsname;
-    this->mode = mode;
+    this->_nickname = nickname;
+    this->_username = username;
+    this->_hotsname = hotsname;
+    this->_mode = mode;
 }
 
 Client::~Client(){
@@ -17,24 +17,24 @@ Client::~Client(){
 }
 
 std::string Client::get_nickname() const{
-    return this->nickname;
+    return this->_nickname;
 }
 
 std::string Client::get_hostname() const{
-    return this->hotsname;
+    return this->_hotsname;
 }
 std::string Client::get_mode() const{
-    return this->mode;
+    return this->_mode;
 }
 
 //std::set<std::string> get_channels;//to write
 
 
 void Client::set_nickname(std::string nickname){
-    this->nickname = nickname;
+    this->_nickname = nickname;
 }
 void Client::set_mode(std::string mode){
-    this->mode = mode;
+    this->_mode = mode;
 }
 
 //void add_channel(std::string channel);//to write
